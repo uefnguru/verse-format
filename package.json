@@ -1,0 +1,124 @@
+{
+  "name": "verse-format",
+  "displayName": "Verse Format",
+  "description": "A conservative Verse formatter with configurable braced and colon block styles.",
+  "version": "0.0.1",
+  "publisher": "uefnguru",
+  "author": {
+    "name": "UEFN Guru"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/uefnguru/verse-format#readme",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uefnguru/verse-format.git"
+  },
+  "bugs": {
+    "url": "https://github.com/uefnguru/verse-format/issues"
+  },
+  "icon": "verse-format-icon.png",
+  "packageManager": "pnpm@11.8.0",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Formatters"
+  ],
+  "keywords": [
+    "verse",
+    "uefn",
+    "unreal-editor-for-fortnite",
+    "formatter",
+    "formatting",
+    "braces"
+  ],
+  "activationEvents": [
+    "onLanguage:verse"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "verse",
+        "aliases": [
+          "Verse",
+          "verse"
+        ],
+        "extensions": [
+          ".verse"
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "Verse Format",
+      "properties": {
+        "verseFormat.blockStyle": {
+          "type": "string",
+          "enum": [
+            "braced",
+            "colon"
+          ],
+          "default": "braced",
+          "markdownDescription": "Preferred Verse block style. `braced` converts recognized colon-plus-indentation blocks to braces. `colon` converts recognized braced blocks back to colon-plus-indentation blocks."
+        },
+        "verseFormat.spacingStyle": {
+          "type": "string",
+          "enum": [
+            "wide",
+            "dense"
+          ],
+          "default": "wide",
+          "markdownDescription": "Preferred Verse spacing style. `wide` uses the formatter's readable spacing. `dense` uses compact spacing modeled after Epic's generated digest files."
+        },
+        "verseFormat.wrapMultiPropertyConstructions": {
+          "type": "boolean",
+          "default": true,
+          "description": "Wrap inline aggregate expressions that exceed the configured construction, attribute, or array thresholds onto multiple lines."
+        },
+        "verseFormat.maxInlineConstructionProperties": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "description": "Maximum number of named properties to keep inline in construction expressions before wrapping."
+        },
+        "verseFormat.maxInlineAttributeProperties": {
+          "type": "number",
+          "default": 1,
+          "minimum": 0,
+          "description": "Maximum number of named properties to keep inline in attribute blocks before wrapping."
+        },
+        "verseFormat.maxInlineArrayItems": {
+          "type": "number",
+          "default": 3,
+          "minimum": 0,
+          "description": "Maximum number of array items to keep inline before wrapping."
+        },
+        "verseFormat.finalNewline": {
+          "type": "boolean",
+          "default": true,
+          "description": "Ensure formatted files end with a single newline."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "compile": "tsc -p .",
+    "format": "prettier . --write",
+    "format:check": "prettier . --check",
+    "uefn:install-test-bridge": "node scripts/installUefnTestBridge.mjs",
+    "test:uefn": "pnpm run compile && vitest run --no-file-parallelism --maxWorkers=1 --maxConcurrency=1 test/uefnCompile.test.ts",
+    "watch": "tsc -watch -p .",
+    "test": "pnpm run compile && vitest run",
+    "vscode:prepublish": "pnpm run compile",
+    "package": "pnpm vsce package",
+    "publish": "pnpm vsce publish"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.3",
+    "@types/vscode": "1.90.0",
+    "@vscode/vsce": "^3.6.0",
+    "prettier": "^3.8.4",
+    "typescript": "^5.8.3",
+    "vitest": "^4.1.9"
+  }
+}

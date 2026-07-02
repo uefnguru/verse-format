@@ -3,7 +3,12 @@ import {
     isRecognizedColonBlockHeader,
     looksLikeFunctionHeader
 } from "./rules";
-import { type CommentState, countCurlyBraceDelta, splitLineComment } from "./scanner";
+import {
+    type CommentState,
+    countCurlyBraceDelta,
+    countGroupingDelta,
+    splitLineComment
+} from "./scanner";
 import { countLeadingSpaces, expandTabs } from "./text";
 
 interface BraceStackEntry {
@@ -36,6 +41,7 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
     const result: string[] = [];
     const stack: BraceStackEntry[] = [];
     const commentState: CommentState = { inBlockComment: false };
+    let groupingDepth = 0;
     let removedConvertedClose = false;
 
     for (const rawLine of lines) {
@@ -54,9 +60,13 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
         if (commentState.inBlockComment || trimmed.startsWith("<#")) {
             result.push(expandedLine);
             countCurlyBraceDelta(expandedLine, commentState);
+            groupingDepth = Math.max(0, groupingDepth + countGroupingDelta(expandedLine));
             continue;
         }
 
+        const groupingDepthBefore = groupingDepth;
+        const groupingDepthAfter = Math.max(0, groupingDepth + countGroupingDelta(expandedLine));
+        const isInsideGrouping = groupingDepthBefore > 0 && groupingDepthAfter > 0;
         const indent = countLeadingSpaces(expandedLine);
         if (shouldStripTrailingComma(stack, indent, trimmed)) {
             expandedLine = stripTrailingCodeComma(expandedLine);
@@ -65,6 +75,14 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
 
         const emptyBlockLine = parseEmptyBlockLine(trimmed);
         if (emptyBlockLine) {
+            if (looksLikeFunctionHeader(emptyBlockLine.header)) {
+                result.push(expandedLine);
+                const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+                adjustUntrackedBraceStack(stack, braceDelta, 0);
+                groupingDepth = groupingDepthAfter;
+                continue;
+            }
+
             if (
                 !emptyBlockLine.hasInlineBlockComment &&
                 isConvertibleColonHeader(emptyBlockLine.header)
@@ -76,17 +94,19 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
             } else {
                 result.push(expandedLine);
             }
-            countCurlyBraceDelta(expandedLine, commentState);
+            const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+            adjustUntrackedBraceStack(stack, braceDelta, 0);
+            groupingDepth = groupingDepthAfter;
             continue;
         }
 
         const closeLine = parseCloseLine(trimmed);
         if (closeLine) {
             const closed = stack.pop();
+            let trackedBraceDelta = -1;
 
             if (!closed?.converted) {
                 result.push(expandedLine);
-                countCurlyBraceDelta(expandedLine, commentState);
                 if (
                     closeLine.continuationHeader &&
                     isConvertibleColonHeader(closeLine.continuationHeader)
@@ -95,14 +115,20 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
                         converted: true,
                         stripTrailingCommas: shouldStripBodyCommas(closeLine.continuationHeader)
                     });
+                    trackedBraceDelta += 1;
                 }
+                const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+                adjustUntrackedBraceStack(stack, braceDelta, trackedBraceDelta);
+                groupingDepth = groupingDepthAfter;
                 continue;
             }
 
             if (closeLine.hasInlineBlockComment) {
                 revertConvertedOpen(result, closed);
                 result.push(expandedLine);
-                countCurlyBraceDelta(expandedLine, commentState);
+                const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+                adjustUntrackedBraceStack(stack, braceDelta, trackedBraceDelta);
+                groupingDepth = groupingDepthAfter;
                 continue;
             }
 
@@ -116,15 +142,18 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
                     resultIndex: result.length - 1,
                     stripTrailingCommas: shouldStripBodyCommas(closeLine.continuationHeader)
                 });
+                trackedBraceDelta += 1;
             } else if (closeLine.comment) {
                 result.push(`${" ".repeat(indent)}${closeLine.comment}`);
             } else if (closeLine.hasNonContinuationSuffix) {
                 revertConvertedOpen(result, closed);
                 result.push(expandedLine);
-                countCurlyBraceDelta(expandedLine, commentState);
             } else {
                 removedConvertedClose = true;
             }
+            const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+            adjustUntrackedBraceStack(stack, braceDelta, trackedBraceDelta);
+            groupingDepth = groupingDepthAfter;
             continue;
         }
 
@@ -132,13 +161,18 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
         if (
             !openLine ||
             openLine.hasInlineBlockComment ||
-            !isConvertibleColonHeader(openLine.header)
+            !isConvertibleColonHeader(openLine.header) ||
+            isInsideGrouping
         ) {
             result.push(expandedLine);
-            countCurlyBraceDelta(expandedLine, commentState);
+            const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
             if (openLine) {
                 stack.push({ converted: false });
+                adjustUntrackedBraceStack(stack, braceDelta, 1);
+            } else {
+                adjustUntrackedBraceStack(stack, braceDelta, 0);
             }
+            groupingDepth = groupingDepthAfter;
             continue;
         }
 
@@ -150,10 +184,30 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
             resultIndex: result.length - 1,
             stripTrailingCommas: shouldStripBodyCommas(openLine.header)
         });
-        countCurlyBraceDelta(expandedLine, commentState);
+        const braceDelta = countCurlyBraceDelta(expandedLine, commentState);
+        adjustUntrackedBraceStack(stack, braceDelta, 1);
+        groupingDepth = groupingDepthAfter;
     }
 
     return result;
+}
+
+function adjustUntrackedBraceStack(
+    stack: BraceStackEntry[],
+    braceDelta: number,
+    trackedDelta: number
+): void {
+    const untrackedDelta = braceDelta - trackedDelta;
+    if (untrackedDelta > 0) {
+        for (let count = 0; count < untrackedDelta; count += 1) {
+            stack.push({ converted: false });
+        }
+        return;
+    }
+
+    for (let count = 0; count < -untrackedDelta; count += 1) {
+        stack.pop();
+    }
 }
 
 function shouldStripTrailingComma(

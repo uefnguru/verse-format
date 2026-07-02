@@ -101,5 +101,99 @@ export function looksLikeStandaloneConstructionHeader(header: string): boolean {
 }
 
 export function looksLikeFunctionHeader(code: string): boolean {
-    return /^[A-Za-z_][A-Za-z0-9_]*(?:<[^>]+>)*\s*\([^)]*\)(?:<[^>]+>)*\s*:\s*[^=]+=$/.test(code);
+    const trimmed = code.trim();
+    if (!trimmed.endsWith("=")) {
+        return false;
+    }
+
+    const header = trimmed.slice(0, -1).trimEnd();
+    let index = 0;
+    const name = header.slice(index).match(/^[A-Za-z_][A-Za-z0-9_]*/);
+    if (!name) {
+        return false;
+    }
+
+    index += name[0].length;
+    index = consumeAngleGroups(header, index);
+    index = nextNonWhitespaceIndex(header, index);
+    if (header[index] !== "(") {
+        return false;
+    }
+
+    index = consumeBalancedGroup(header, index, "(", ")");
+    if (index === -1) {
+        return false;
+    }
+
+    index = consumeAngleGroups(header, index);
+    index = nextNonWhitespaceIndex(header, index);
+    if (header[index] !== ":") {
+        return false;
+    }
+
+    return header.slice(index + 1).trim().length > 0;
+}
+
+function consumeAngleGroups(source: string, startIndex: number): number {
+    let index = nextNonWhitespaceIndex(source, startIndex);
+    while (source[index] === "<") {
+        index = consumeBalancedGroup(source, index, "<", ">");
+        if (index === -1) {
+            return source.length;
+        }
+        index = nextNonWhitespaceIndex(source, index);
+    }
+
+    return index;
+}
+
+function consumeBalancedGroup(
+    source: string,
+    startIndex: number,
+    open: string,
+    close: string
+): number {
+    let depth = 0;
+    let quote: '"' | "'" | null = null;
+    let escaped = false;
+
+    for (let index = startIndex; index < source.length; index += 1) {
+        const char = source[index];
+
+        if (quote) {
+            if (escaped) {
+                escaped = false;
+            } else if (char === "\\") {
+                escaped = true;
+            } else if (char === quote) {
+                quote = null;
+            }
+            continue;
+        }
+
+        if (char === '"' || char === "'") {
+            quote = char;
+            continue;
+        }
+
+        if (char === open) {
+            depth += 1;
+        } else if (char === close) {
+            depth -= 1;
+            if (depth === 0) {
+                return index + 1;
+            }
+        }
+    }
+
+    return -1;
+}
+
+function nextNonWhitespaceIndex(source: string, startIndex: number): number {
+    let index = startIndex;
+    while (index < source.length && /\s/.test(source[index])) {
+        index += 1;
+    }
+
+    return index;
 }

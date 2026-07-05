@@ -6,9 +6,9 @@ vf_device_events := class(creative_device):
     DelaySeconds: float = 0.0
 
     @editable
-    Button: button_device = button_device:
+    Button: button_device = button_device{}
 
-    Finished: event() = event():
+    Finished: event() = event() {}
     var MaybeSubscription: ?cancelable = false
 
     OnBegin<override>()<suspends>: void =

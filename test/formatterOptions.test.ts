@@ -7,6 +7,7 @@ it("resolves formatter defaults", () => {
     expect(resolveFormatterOptions()).toEqual({
         indentSize: 4,
         blockStyle: "braced",
+        emptyConstructionStyle: "braced",
         spacingStyle: "wide",
         wrapMultiPropertyConstructions: true,
         maxInlineConstructionProperties: 1,
@@ -18,6 +19,13 @@ it("resolves formatter defaults", () => {
 
 it("resolves the dense spacing style", () => {
     expect(resolveFormatterOptions({ spacingStyle: "dense" }).spacingStyle).toBe("dense");
+});
+
+it("resolves the empty construction style", () => {
+    expect(
+        resolveFormatterOptions({ emptyConstructionStyle: "colon" }).emptyConstructionStyle
+    ).toBe("colon");
+    expect(resolveFormatterOptions({}).emptyConstructionStyle).toBe("braced");
 });
 
 it("can omit the final newline", () => {

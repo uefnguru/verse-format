@@ -13,6 +13,7 @@ export function activate(context: vscode.ExtensionContext): void {
             const config = vscode.workspace.getConfiguration("verseFormat", document);
             const formatted = formatVerseDocument(document.getText(), {
                 blockStyle: config.get("blockStyle"),
+                emptyConstructionStyle: config.get("emptyConstructionStyle"),
                 spacingStyle: config.get("spacingStyle"),
                 wrapMultiPropertyConstructions: config.get("wrapMultiPropertyConstructions", true),
                 maxInlineConstructionProperties: config.get("maxInlineConstructionProperties", 1),

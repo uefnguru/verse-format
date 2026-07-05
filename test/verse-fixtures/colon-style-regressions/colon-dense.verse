@@ -47,7 +47,7 @@ animation_call_regression := module:
 
         RotationKeyframe<private>(Rotation:vector3):keyframe_delta =
             keyframe_delta:
-                DeltaLocation := vector3:
+                DeltaLocation := vector3{}
                 DeltaRotation := MakeRotationFromYawPitchRollDegrees(Rotation.X, Rotation.Y, Rotation.Z)
                 DeltaScale := UnitVector3
                 Time := 0.3

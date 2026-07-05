@@ -16,7 +16,7 @@ export function formatVerseDocument(text: string, options: FormatterOptions = {}
     const formatted = formatBracedLines(blockReadyLines, settings.indentSize, settings);
     const styled =
         settings.blockStyle === "colon"
-            ? convertBracedBlocksToColon(formatted, settings.indentSize)
+            ? convertBracedBlocksToColon(formatted, settings.indentSize, settings)
             : formatted;
     const body = styled.join("\n").replace(/[ \t]+$/gm, "");
     return settings.finalNewline ? `${body}\n` : body;

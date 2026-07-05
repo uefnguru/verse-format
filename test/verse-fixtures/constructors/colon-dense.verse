@@ -2,11 +2,11 @@ vf_constructors := module:
     weapon_profile := class:
         Name:string
         Damage:int
-        Tags:[]string = array:
+        Tags:[]string = array{}
 
     ranked_profile := class(weapon_profile):
         Rank:int = 0
-        Tags<override>:[]string = array:
+        Tags<override>:[]string = array{}
 
     MakeProfile<constructor>(Name:string, Damage:int) := weapon_profile:
         Name := Name

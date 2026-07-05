@@ -6,7 +6,7 @@ vf_custom_parametric_events := module:
         Subscribe<public>(Callback:type {_(:payload_type):void}):void
 
     custom_event(payload_type:type) := class<concrete>(i_custom_event(payload_type)):
-        var Subscriptions<private>:[]type {_(:payload_type):void} = array:
+        var Subscriptions<private>:[]type {_(:payload_type):void} = array{}
 
         Subscribe<override>(Callback:type {_(:payload_type):void}):void =
             set Subscriptions += array{Callback}
@@ -16,7 +16,7 @@ vf_custom_parametric_events := module:
                 Callback(Payload)
 
     custom_int_event_emitter_device := class(creative_device):
-        IntEvent<private>:custom_event(int) = custom_event(int):
+        IntEvent<private>:custom_event(int) = custom_event(int) {}
 
         CustomEvent<public>():i_custom_event(int) =
             IntEvent
@@ -26,7 +26,7 @@ vf_custom_parametric_events := module:
 
     custom_int_event_subscriber_device := class(creative_device):
         @editable
-        EmitterDevice:custom_int_event_emitter_device = custom_int_event_emitter_device:
+        EmitterDevice:custom_int_event_emitter_device = custom_int_event_emitter_device{}
 
         OnBegin<override>()<suspends>:void =
             EmitterDevice.CustomEvent().Subscribe(OnEvent)

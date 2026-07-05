@@ -4,13 +4,13 @@ using { /UnrealEngine.com/Temporary/SpatialMath }
 using { /UnrealEngine.com/Temporary/UI }
 using { /Verse.org/Simulation }
 
-ScoreMessage<localizes>(Name: string, DisplayScore: int): message =
+VfUiScoreMessage<localizes>(Name: string, DisplayScore: int): message =
     "{Name}: {DisplayScore} points"
 
 vf_ui_creation := class(creative_device):
     BuildScoreWidget(Name: string, Score: int): canvas =
         Header := text_block:
-            DefaultText := ScoreMessage(Name, Score + 1)
+            DefaultText := VfUiScoreMessage(Name, Score + 1)
             DefaultTextSize := 24.0
         Row := stack_box:
             Orientation := orientation.Vertical

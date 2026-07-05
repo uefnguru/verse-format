@@ -10,6 +10,7 @@ import { normalizeCodeSpacing } from "./spacing";
 import { countLeadingSpaces, expandTabs, removeTrailingBlankLines } from "./text";
 
 interface ColonBlockStackEntry {
+    explicitBodyBraceIndent?: number;
     headerIndent: number;
     kind: "block" | "function";
     recoveredFlattenedBody?: boolean;
@@ -97,6 +98,14 @@ export function convertColonBlocks(
         }
 
         if (tryRecoverFlattenedFunctionBodyLine(result, stack, indent, trimmed, indentSize)) {
+            continue;
+        }
+
+        if (tryConsumeStandaloneFunctionBodyOpen(stack, indent, trimmed, indentSize)) {
+            continue;
+        }
+
+        if (tryConsumeStandaloneFunctionBodyClose(result, stack, indent, trimmed)) {
             continue;
         }
 
@@ -255,6 +264,45 @@ function tryRecoverFlattenedFunctionCommentLine(
     }
 
     result.push(`${" ".repeat((indent / indentSize + 1) * indentSize)}${trimmed}`);
+    return true;
+}
+
+function tryConsumeStandaloneFunctionBodyOpen(
+    stack: ColonBlockStackEntry[],
+    indent: number,
+    trimmed: string,
+    indentSize: number
+): boolean {
+    const current = stack[stack.length - 1];
+    if (!current || current.kind !== "function" || current.sawBody || trimmed !== "{") {
+        return false;
+    }
+
+    if (indent !== current.headerIndent && indent !== current.headerIndent + indentSize) {
+        return false;
+    }
+
+    current.explicitBodyBraceIndent = indent;
+    return true;
+}
+
+function tryConsumeStandaloneFunctionBodyClose(
+    result: string[],
+    stack: ColonBlockStackEntry[],
+    indent: number,
+    trimmed: string
+): boolean {
+    const current = stack[stack.length - 1];
+    if (
+        !current ||
+        current.kind !== "function" ||
+        current.explicitBodyBraceIndent !== indent ||
+        trimmed !== "}"
+    ) {
+        return false;
+    }
+
+    closeGeneratedBlock(result, stack.pop() as ColonBlockStackEntry, trimmed);
     return true;
 }
 

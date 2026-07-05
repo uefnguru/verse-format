@@ -2,7 +2,7 @@
   "name": "verse-format",
   "displayName": "Verse Format",
   "description": "A conservative Verse formatter with configurable braced and colon block styles.",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "publisher": "uefnguru",
   "author": {
     "name": "UEFN Guru"

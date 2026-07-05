@@ -13,6 +13,7 @@ export type {
     FormatterOptions,
     ResolvedFormatterOptions,
     VerseBlockStyle,
+    VerseEmptyConstructionStyle,
     VerseSpacingStyle
 } from "./formatter/options";
 export { formatVerseDocument } from "./formatter/pipeline";

@@ -1,8 +1,10 @@
 export type VerseBlockStyle = "braced" | "colon";
+export type VerseEmptyConstructionStyle = "braced" | "colon";
 export type VerseSpacingStyle = "wide" | "dense";
 
 export interface FormatterOptions {
     blockStyle?: VerseBlockStyle;
+    emptyConstructionStyle?: VerseEmptyConstructionStyle;
     spacingStyle?: VerseSpacingStyle;
     wrapMultiPropertyConstructions?: boolean;
     maxInlineConstructionProperties?: number;
@@ -14,6 +16,7 @@ export interface FormatterOptions {
 export interface ResolvedFormatterOptions {
     indentSize: number;
     blockStyle: VerseBlockStyle;
+    emptyConstructionStyle: VerseEmptyConstructionStyle;
     spacingStyle: VerseSpacingStyle;
     wrapMultiPropertyConstructions: boolean;
     maxInlineConstructionProperties: number;
@@ -26,6 +29,7 @@ export function resolveFormatterOptions(options: FormatterOptions = {}): Resolve
     return {
         indentSize: 4,
         blockStyle: resolveBlockStyle(options),
+        emptyConstructionStyle: resolveEmptyConstructionStyle(options),
         spacingStyle: resolveSpacingStyle(options),
         wrapMultiPropertyConstructions: options.wrapMultiPropertyConstructions !== false,
         maxInlineConstructionProperties: resolveNonNegativeInteger(
@@ -44,6 +48,14 @@ export function resolveFormatterOptions(options: FormatterOptions = {}): Resolve
 function resolveBlockStyle(options: FormatterOptions): VerseBlockStyle {
     if (options.blockStyle === "braced" || options.blockStyle === "colon") {
         return options.blockStyle;
+    }
+
+    return "braced";
+}
+
+function resolveEmptyConstructionStyle(options: FormatterOptions): VerseEmptyConstructionStyle {
+    if (options.emptyConstructionStyle === "braced" || options.emptyConstructionStyle === "colon") {
+        return options.emptyConstructionStyle;
     }
 
     return "braced";

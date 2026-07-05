@@ -122,7 +122,7 @@ testFormat(
 );
 
 testFormat(
-    "converts multiline constructions, containers, and empty braces to colon style",
+    "converts multiline constructions and keeps empty constructions braced by default",
     [
         "probe := module {",
         "    slot := class {",
@@ -159,19 +159,19 @@ testFormat(
         '        Name: string = ""',
         "",
         "    layout := class:",
-        "        Slots: []slot = array:",
+        "        Slots: []slot = array{}",
         "",
         "    MakeLayout(): layout =",
         "        layout:",
         "            Slots := array:",
         "                slot:",
         '                    Name := "Header"',
-        "                slot:",
+        "                slot{}",
         "",
         "    MakeMap(): [string]layout =",
         "        map:",
         '            "main" => layout:',
-        "                Slots := array:",
+        "                Slots := array{}",
         ""
     ].join("\n"),
     { blockStyle: "colon" }
@@ -201,7 +201,7 @@ testFormat(
 );
 
 testFormat(
-    "collapses blank runs after converted empty blocks in colon style",
+    "collapses blank runs after converted empty constructions in colon style",
     [
         "probe := class(creative_device) {",
         "    Manager: text_display_manager_device = text_display_manager_device {}",
@@ -220,7 +220,7 @@ testFormat(
         "        return",
         ""
     ].join("\n"),
-    { blockStyle: "colon" }
+    { blockStyle: "colon", emptyConstructionStyle: "colon" }
 );
 
 testFormat(

@@ -5,7 +5,7 @@ vf_player_profile := class<final><persistable>:
     Version: int = 1
     Score: int = 0
 
-var VfProfiles: weak_map(player, vf_player_profile) = map:
+var VfProfiles: weak_map(player, vf_player_profile) = map{}
 
 vf_persistence_weak_map := class(creative_device):
     OnBegin<override>()<suspends>: void =

@@ -1,7 +1,10 @@
 import {
     isContinuationHeader,
     isRecognizedColonBlockHeader,
-    looksLikeFunctionHeader
+    looksLikeCompositeHeader,
+    looksLikeConstructionHeader,
+    looksLikeFunctionHeader,
+    looksLikeStandaloneConstructionHeader
 } from "./rules";
 import {
     type CommentState,
@@ -9,6 +12,7 @@ import {
     countGroupingDelta,
     splitLineComment
 } from "./scanner";
+import { type ResolvedFormatterOptions } from "./options";
 import { countLeadingSpaces, expandTabs } from "./text";
 
 interface BraceStackEntry {
@@ -37,7 +41,11 @@ interface ParsedOpenLine {
     hasInlineBlockComment: boolean;
 }
 
-export function convertBracedBlocksToColon(lines: string[], indentSize: number): string[] {
+export function convertBracedBlocksToColon(
+    lines: string[],
+    indentSize: number,
+    settings: ResolvedFormatterOptions
+): string[] {
     const result: string[] = [];
     const stack: BraceStackEntry[] = [];
     const commentState: CommentState = { inBlockComment: false };
@@ -85,7 +93,8 @@ export function convertBracedBlocksToColon(lines: string[], indentSize: number):
 
             if (
                 !emptyBlockLine.hasInlineBlockComment &&
-                isConvertibleColonHeader(emptyBlockLine.header)
+                isConvertibleColonHeader(emptyBlockLine.header) &&
+                !shouldPreserveEmptyConstruction(emptyBlockLine.header, settings)
             ) {
                 result.push(
                     `${" ".repeat(indent)}${formatColonHeader(emptyBlockLine.header, emptyBlockLine.comment)}`
@@ -381,6 +390,29 @@ function shouldStripBodyCommas(header: string): boolean {
     }
 
     return true;
+}
+
+function shouldPreserveEmptyConstruction(
+    header: string,
+    settings: ResolvedFormatterOptions
+): boolean {
+    if (settings.emptyConstructionStyle !== "braced") {
+        return false;
+    }
+
+    if (looksLikeFunctionHeader(header) || looksLikeCompositeHeader(header)) {
+        return false;
+    }
+
+    if (/^@/.test(header)) {
+        return false;
+    }
+
+    if (/^(?:if|else|for|case|block|defer|loop|sync|race|rush|branch|spawn|then)\b/.test(header)) {
+        return false;
+    }
+
+    return looksLikeConstructionHeader(header) || looksLikeStandaloneConstructionHeader(header);
 }
 
 function formatColonHeader(header: string, comment: string): string {

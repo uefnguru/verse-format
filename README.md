@@ -55,6 +55,7 @@ Print("if/then else block")
 {
   "verseFormat.blockStyle": "braced",
   "verseFormat.spacingStyle": "wide",
+  "verseFormat.emptyConstructionStyle": "braced",
   "verseFormat.wrapMultiPropertyConstructions": true,
   "verseFormat.maxInlineConstructionProperties": 1,
   "verseFormat.maxInlineAttributeProperties": 1,
@@ -76,6 +77,8 @@ using { /Verse.org/Simulation }
 Run(Value:int):void = external {}
 using {/Verse.org/Simulation}
 ```
+
+`verseFormat.emptyConstructionStyle` can be `braced` or `colon`. It only applies when `verseFormat.blockStyle` is `colon`; by default, empty construction and container expressions stay visibly braced, such as `volume_device{}` and `array{}`.
 
 Inline construction expressions with one named property stay compact:
 

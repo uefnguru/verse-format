@@ -4,7 +4,7 @@ vf_nested_construction_arrays := module:
         Padding:int = 0
 
     layout := class:
-        Slots:[]slot = array:
+        Slots:[]slot = array{}
 
     MakeLayout():layout =
         layout:

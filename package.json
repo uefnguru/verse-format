@@ -70,6 +70,15 @@
           "default": "wide",
           "markdownDescription": "Preferred Verse spacing style. `wide` uses the formatter's readable spacing. `dense` uses compact spacing modeled after Epic's generated digest files."
         },
+        "verseFormat.emptyConstructionStyle": {
+          "type": "string",
+          "enum": [
+            "braced",
+            "colon"
+          ],
+          "default": "braced",
+          "markdownDescription": "Preferred formatting for empty construction and container expressions when `verseFormat.blockStyle` is `colon`. `braced` keeps forms such as `volume_device{}` and `array{}`. `colon` converts recognized empty expressions to colon style. Ignored when `verseFormat.blockStyle` is `braced`."
+        },
         "verseFormat.wrapMultiPropertyConstructions": {
           "type": "boolean",
           "default": true,

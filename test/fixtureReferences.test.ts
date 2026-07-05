@@ -168,5 +168,6 @@ function collectVerseFiles(directory: string): string[] {
 }
 
 function ensureFinalNewline(value: string): string {
-    return value.endsWith("\n") ? value : `${value}\n`;
+    const normalized = value.replace(/\r\n?/g, "\n");
+    return normalized.endsWith("\n") ? normalized : `${normalized}\n`;
 }

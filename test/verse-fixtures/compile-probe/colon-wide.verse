@@ -32,7 +32,7 @@ formatter_compile_probe := module:
             _ => 0
 
     BuildMap()<transacts>: [int]int =
-        var Values: [int]int = map:
+        var Values: [int]int = map{}
         if(set Values[0] = 1):
         if(set Values[1] = 2):
             block:
